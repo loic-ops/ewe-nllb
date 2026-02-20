@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ewe-nllb | Traduction Francais - Ewe</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            min-height: 100vh;
+            padding: 1rem;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 2rem auto;
+        }
+
+        h1 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 0.25rem;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #888;
+            font-size: 0.85rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 1.25rem;
+        }
+
+        .lang-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .lang-name {
+            font-size: 0.9rem;
+            font-weight: 500;
+            padding: 0.4rem 1rem;
+            background: #f0f0f0;
+            border-radius: 4px;
+            min-width: 90px;
+            text-align: center;
+        }
+
+        .swap-btn {
+            background: none;
+            border: 1px solid #ccc;
+            color: #666;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .swap-btn:hover {
+            border-color: #999;
+            color: #333;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-family: inherit;
+            resize: vertical;
+            outline: none;
+            background: #fff;
+            color: #333;
+        }
+
+        textarea:focus {
+            border-color: #999;
+        }
+
+        #output {
+            background: #fafafa;
+            margin-top: 0.75rem;
+        }
+
+        .bottom-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 0.75rem;
+        }
+
+        .char-count {
+            color: #aaa;
+            font-size: 0.8rem;
+        }
+
+        .translate-btn {
+            background: #333;
+            color: #fff;
+            border: none;
+            padding: 0.6rem 1.5rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .translate-btn:hover {
+            background: #555;
+        }
+
+        .translate-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 1.5rem;
+            color: #aaa;
+            font-size: 0.75rem;
+        }
+
+        footer a {
+            color: #888;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ewe-nllb</h1>
+        <p class="subtitle">Traduction Francais - Ewe</p>
+
+        <div class="card">
+            <div class="lang-row">
+                <span class="lang-name" id="srcLabel">Francais</span>
+                <button class="swap-btn" onclick="swapLanguages()" title="Inverser">&#8644;</button>
+                <span class="lang-name" id="tgtLabel">Ewe</span>
+            </div>
+
+            <textarea id="input" placeholder="Entrez votre texte..." oninput="updateCount()"></textarea>
+            <textarea id="output" readonly placeholder="Traduction..."></textarea>
+
+            <div class="bottom-row">
+                <span class="char-count" id="charCount">0</span>
+                <button class="translate-btn" id="btn" onclick="doTranslate()">Traduire</button>
+            </div>
+        </div>
+
+        <footer>
+            <a href="https://github.com/loic-ops/ewe-nllb">GitHub</a>
+            &middot;
+            <a href="https://huggingface.co/cnss-ewe-project/nllb-ewe-finetuned">Modele</a>
+        </footer>
+    </div>
+
+    <script>
+        let src = 'fr', tgt = 'ee';
+        const names = { fr: 'Francais', ee: 'Ewe' };
+
+        function updateCount() {
+            document.getElementById('charCount').textContent = document.getElementById('input').value.length;
+        }
+
+        function swapLanguages() {
+            [src, tgt] = [tgt, src];
+            document.getElementById('srcLabel').textContent = names[src];
+            document.getElementById('tgtLabel').textContent = names[tgt];
+            const i = document.getElementById('input'), o = document.getElementById('output');
+            const t = i.value; i.value = o.value; o.value = t;
+            updateCount();
+        }
+
+        async function doTranslate() {
+            const text = document.getElementById('input').value.trim();
+            if (!text) return;
+            const btn = document.getElementById('btn');
+            const output = document.getElementById('output');
+            btn.disabled = true; btn.textContent = '...';
+            output.value = '';
+            try {
+                const res = await fetch('/translate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text, src, tgt }),
+                });
+                if (!res.ok) throw new Error('Erreur serveur');
+                const data = await res.json();
+                output.value = data.translation;
+            } catch (e) {
+                output.value = 'Erreur: ' + e.message;
+            } finally {
+                btn.disabled = false; btn.textContent = 'Traduire';
+            }
+        }
+
+        document.getElementById('input').addEventListener('keydown', e => {
+            if (e.ctrlKey && e.key === 'Enter') doTranslate();
+        });
+    </script>
+</body>
+</html>
