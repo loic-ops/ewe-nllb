@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ewe-nllb"
+version = "0.1.0"
+description = "Traduction Francais <-> Ewe avec NLLB-200 fine-tune"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.10"
+authors = [
+    {name = "loic-ops"},
+]
+keywords = ["translation", "ewe", "french", "nllb", "nlp", "africa", "togo", "ghana"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Text Processing :: Linguistic",
+]
+dependencies = [
+    "torch>=2.0.0",
+    "transformers>=4.36.0",
+    "huggingface-hub>=0.20.0",
+    "numpy>=1.24.0",
+]
+
+[project.optional-dependencies]
+tts = ["scipy>=1.11.0"]
+
+[project.urls]
+Homepage = "https://github.com/loic-ops/ewe-nllb"
+Repository = "https://github.com/loic-ops/ewe-nllb"
+Issues = "https://github.com/loic-ops/ewe-nllb/issues"
+
+[project.scripts]
+ewe-translate = "ewe_nllb.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["ewe_nllb*"]
