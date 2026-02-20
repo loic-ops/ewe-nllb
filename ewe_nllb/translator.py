@@ -4,7 +4,7 @@ import logging
 
 import torch
 from huggingface_hub import snapshot_download
-from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
+from transformers import AutoModelForSeq2SeqLM, NllbTokenizerFast
 
 logger = logging.getLogger(__name__)
 
@@ -63,7 +63,7 @@ class EweTranslator:
                 )
                 model_name = BASE_MODEL
 
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+        self.tokenizer = NllbTokenizerFast.from_pretrained(model_name)
         self.model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
         self.model.eval()
         self.model.to(self.device)
